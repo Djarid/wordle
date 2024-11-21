@@ -1,6 +1,11 @@
 package wordle
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+
+	"github.com/Djarid/wordle/words"
+)
 
 func TestNewWordleState(t *testing.T) {
 	word := "HELLO"
@@ -68,7 +73,7 @@ func TestUpdateLettersWithWord(t *testing.T) {
 	}
 
 	for i, v := range guess {
-		// t.Logf("    letter %d: %c, %s", i, v.char, statusToString(v.status))
+		//  t.Logf("    letter %d: %c, %s", i, v.char, statusToString(v.status))
 
 		if v.status != statuses[i] {
 			t.Errorf(
@@ -82,4 +87,51 @@ func TestUpdateLettersWithWord(t *testing.T) {
 		}
 	}
 
+}
+
+func TestAppendGuess(t *testing.T) {
+	ws := newWordleState("HELLO")
+	g := newGuess("HELLO")
+
+	g.updateLettersWithWord(ws.word)
+	ws.appendGuess(g)
+
+	fmt.Printf("Guesses %d, guess %v\n", ws.currGuess, ws.guesses[ws.currGuess].string())
+
+	if !ws.isWordGuessed() {
+		t.Errorf("isWordGuessed() should return true")
+	}
+}
+func TestShouldEngGameCorrect(t *testing.T) {
+	ws := newWordleState("HELLO")
+	g := newGuess("HELLO")
+
+	g.updateLettersWithWord(ws.word)
+	ws.appendGuess(g)
+
+	if !ws.shouldEndGame() {
+		t.Errorf("shouldEndGame should return true")
+	} else {
+		if !ws.isWordGuessed() {
+			t.Errorf("isWordGuessed should return true")
+		}
+	}
+}
+
+func TestShouldEndGameMaxGuesses(t *testing.T) {
+	ws := newWordleState("HELLO")
+
+	for i := 0; i < maxGuesses; i++ {
+		g := newGuess(words.GetWord())
+		g.updateLettersWithWord(ws.word)
+		ws.appendGuess(g)
+	}
+
+	if !ws.shouldEndGame() {
+		fmt.Printf("test: %v\n", len(ws.guesses) < maxGuesses)
+	} else {
+		if len(ws.guesses) < maxGuesses {
+			t.Errorf("ws.currGuess should be >= maxGuesses")
+		}
+	}
 }
